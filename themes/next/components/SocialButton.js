@@ -8,6 +8,9 @@ import { siteConfig } from '@/lib/config'
 const SocialButton = () => {
   return <div className='w-52 justify-center flex-wrap flex'>
     <div className='space-x-3 text-xl text-gray-600 dark:text-gray-400 text-center'>
+      {siteConfig('CONTACT_WEIXIN') && <a target='_blank' rel='noreferrer' title={'weixin'} href={siteConfig('CONTACT_WEIXIN')} >
+        <i className='fa-brands fa-weixin transform hover:scale-125 duration-150'/>
+      </a>}
       {siteConfig('CONTACT_GITHUB') && <a target='_blank' rel='noreferrer' title={'github'} href={siteConfig('CONTACT_GITHUB')} >
         <i className='fab fa-github transform hover:scale-125 duration-150'/>
       </a>}
