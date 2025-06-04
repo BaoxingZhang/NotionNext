@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>括号式提示词生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .generator-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .module-group {
+            margin-bottom: 25px;
+        }
+        
+        .module-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input[type="text"]::placeholder {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .result-panel {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        #result {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            min-height: 100px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .copy-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 15px;
+            transition: transform 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .examples-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .example-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .example-prompt {
+            font-family: 'Courier New', monospace;
+            background: #495057;
+            color: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .example-description {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .structure-guide {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .structure-text {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            text-align: center;
+            color: #1565c0;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .generator-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .examples-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 括号式提示词生成器</h1>
+        
+        <div class="structure-guide">
+            <div class="structure-text">
+                (风格 (主体 (属性1) (属性2) (动作)) (场景) (视角))
+            </div>
+            <div style="text-align: center; margin-top: 10px; font-size: 14px; color: #6c757d;">
+                💡 每个模块都支持选择预设选项或自定义输入，释放无限创意！
+            </div>
+        </div>
+        
+        <div class="generator-section">
+            <div class="control-panel">
+                <div class="module-group">
+                    <div class="module-title">🎭 整体风格</div>
+                    <select id="style">
+                        <option value="">选择风格...</option>
+                        <option value="realistic">realistic (写实)</option>
+                        <option value="sketch">sketch (素描)</option>
+                        <option value="minimalist">minimalist (极简)</option>
+                        <option value="surreal">surreal (超现实)</option>
+                        <option value="rhythmic">rhythmic (节奏感)</option>
+                        <option value="dramatic">dramatic (戏剧性)</option>
+                        <option value="abstract">abstract (抽象)</option>
+                        <option value="impressionist">impressionist (印象派)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="style-custom" placeholder="输入自定义风格..." style="display: none;">
+                </div>
+                
+                <div class="module-group">
+                    <div class="module-title">🎯 主要对象</div>
+                    <select id="subject">
+                        <option value="">选择主体...</option>
+                        <option value="person">person (人物)</option>
+                        <option value="tiger">tiger (老虎)</option>
+                        <option value="dragon">dragon (龙)</option>
+                        <option value="zebra">zebra (斑马)</option>
+                        <option value="cat">cat (猫)</option>
+                        <option value="bird">bird (鸟)</option>
+                        <option value="tree">tree (树)</option>
+                        <option value="building">building (建筑)</option>
+                        <option value="car">car (汽车)</option>
+                        <option value="piano">piano (钢琴)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="subject-custom" placeholder="输入自定义主体..." style="display: none;">
+                </div>
+                
+                <div class="module-group">
+                    <div class="module-title">🎨 颜色属性</div>
+                    <select id="color">
+                        <option value="">选择颜色...</option>
+                        <option value="colors black-red">colors black-red (黑红)</option>
+                        <option value="monochrome">monochrome (单色)</option>
+                        <option value="high-contrast">high-contrast (高对比)</option>
+                        <option value="vibrant">vibrant (鲜艳)</option>
+                        <option value="pastel">pastel (粉彩)</option>
+                        <option value="golden">golden (金色)</option>
+                        <option value="blue-tones">blue-tones (蓝调)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="color-custom" placeholder="输入自定义颜色..." style="display: none;">
+                </div>
+                
+                <div class="module-group">
+                    <div class="module-title">⚡ 动作状态</div>
+                    <select id="action">
+                        <option value="">选择动作...</option>
+                        <option value="running">running (奔跑)</option>
+                        <option value="flying">flying (飞行)</option>
+                        <option value="sitting">sitting (坐着)</option>
+                        <option value="dancing">dancing (舞蹈)</option>
+                        <option value="jumping">jumping (跳跃)</option>
+                        <option value="swimming">swimming (游泳)</option>
+                        <option value="riding">riding (骑行)</option>
+                        <option value="transforming">transforming (变形)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="action-custom" placeholder="输入自定义动作..." style="display: none;">
+                </div>
+                
+                <div class="module-group">
+                    <div class="module-title">🏛️ 场景环境</div>
+                    <select id="scene">
+                        <option value="">选择场景...</option>
+                        <option value="city beijing">city beijing (北京城市)</option>
+                        <option value="forest">forest (森林)</option>
+                        <option value="ocean">ocean (海洋)</option>
+                        <option value="mountains">mountains (山脉)</option>
+                        <option value="space">space (太空)</option>
+                        <option value="studio">studio (工作室)</option>
+                        <option value="street">street (街道)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="scene-custom" placeholder="输入自定义场景..." style="display: none;">
+                </div>
+                
+                <div class="module-group">
+                    <div class="module-title">👁️ 视角构图</div>
+                    <select id="view">
+                        <option value="">选择视角...</option>
+                        <option value="first-person">first-person (第一人称)</option>
+                        <option value="aerial-view">aerial-view (鸟瞰)</option>
+                        <option value="close-up">close-up (特写)</option>
+                        <option value="wide-shot">wide-shot (全景)</option>
+                        <option value="diagonal">diagonal (对角)</option>
+                        <option value="low-angle">low-angle (仰视)</option>
+                        <option value="high-angle">high-angle (俯视)</option>
+                        <option value="custom">✏️ 自定义...</option>
+                    </select>
+                    <input type="text" id="view-custom" placeholder="输入自定义视角..." style="display: none;">
+                </div>
+            </div>
+            
+            <div class="result-panel">
+                <div class="module-title" style="color: #e2e8f0; border-color: #667eea;">📝 生成的提示词</div>
+                <div id="result">请选择各个模块来生成提示词...</div>
+                <button class="copy-btn" onclick="copyResult()">📋 复制提示词</button>
+            </div>
+        </div>
+        
+        <div class="examples-section">
+            <h2 style="color: #333; margin-bottom: 20px;">💡 示例模板</h2>
+            <div class="examples-grid">
+                <div class="example-card" onclick="loadExample('realistic', 'person', '', 'riding', 'city beijing', 'first-person')">
+                    <div class="example-prompt">(realistic (person (riding dragon)) (city beijing) (first-person))</div>
+                    <div class="example-description">写实风格的第一人称骑龙视角</div>
+                </div>
+                
+                <div class="example-card" onclick="loadExample('sketch', 'tiger', 'colors black-red', '', '', '')">
+                    <div class="example-prompt">(sketch (tiger (colors black-red) (minimalist)))</div>
+                    <div class="example-description">黑红配色的极简老虎素描</div>
+                </div>
+                
+                <div class="example-card" onclick="loadExample('rhythmic', 'piano', 'monochrome', 'transforming', '', 'aerial-view diagonal')">
+                    <div class="example-prompt">(rhythmic (piano (monochrome) (transforming)) (aerial-view diagonal))</div>
+                    <div class="example-description">单色钢琴变形的节奏感鸟瞰图</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function generatePrompt() {
+            const style = getFieldValue('style');
+            const subject = getFieldValue('subject');
+            const color = getFieldValue('color');
+            const action = getFieldValue('action');
+            const scene = getFieldValue('scene');
+            const view = getFieldValue('view');
+            
+            if (!style && !subject) {
+                document.getElementById('result').textContent = '请至少选择风格和主体...';
+                return;
+            }
+            
+            let prompt = '';
+            
+            // 构建提示词
+            if (style) {
+                prompt += `(${style}`;
+                
+                if (subject) {
+                    prompt += ` (${subject}`;
+                    
+                    // 添加属性
+                    const attributes = [];
+                    if (color) attributes.push(`(${color})`);
+                    if (action) attributes.push(`(${action})`);
+                    
+                    if (attributes.length > 0) {
+                        prompt += ' ' + attributes.join(' ');
+                    }
+                    
+                    prompt += ')';
+                }
+                
+                // 添加场景
+                if (scene) {
+                    prompt += ` (${scene})`;
+                }
+                
+                // 添加视角
+                if (view) {
+                    prompt += ` (${view})`;
+                }
+                
+                prompt += ')';
+            } else if (subject) {
+                // 如果没有风格但有主体
+                prompt += `(${subject}`;
+                
+                const attributes = [];
+                if (color) attributes.push(`(${color})`);
+                if (action) attributes.push(`(${action})`);
+                
+                if (attributes.length > 0) {
+                    prompt += ' ' + attributes.join(' ');
+                }
+                
+                prompt += ')';
+                
+                if (scene) {
+                    prompt = `(${prompt} (${scene})`;
+                    if (view) {
+                        prompt += ` (${view})`;
+                    }
+                    prompt += ')';
+                }
+            }
+            
+            document.getElementById('result').textContent = prompt || '请选择模块来生成提示词...';
+        }
+        
+        function getFieldValue(fieldName) {
+            const select = document.getElementById(fieldName);
+            const customInput = document.getElementById(fieldName + '-custom');
+            
+            if (select.value === 'custom') {
+                return customInput.value.trim();
+            }
+            return select.value;
+        }
+        
+        function toggleCustomInput(fieldName) {
+            const select = document.getElementById(fieldName);
+            const customInput = document.getElementById(fieldName + '-custom');
+            
+            if (select.value === 'custom') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
+        
+        function copyResult() {
+            const resultText = document.getElementById('result').textContent;
+            if (resultText && resultText !== '请选择模块来生成提示词...' && resultText !== '请至少选择风格和主体...') {
+                navigator.clipboard.writeText(resultText).then(() => {
+                    const btn = document.querySelector('.copy-btn');
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ 已复制!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                });
+            }
+        }
+        
+        function loadExample(style, subject, color, action, scene, view) {
+            // 重置所有自定义输入框
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.style.display = 'none';
+                input.value = '';
+            });
+            
+            // 设置选择值
+            document.getElementById('style').value = style;
+            document.getElementById('subject').value = subject;
+            document.getElementById('color').value = color;
+            document.getElementById('action').value = action;
+            document.getElementById('scene').value = scene;
+            document.getElementById('view').value = view;
+            
+            generatePrompt();
+        }
+        
+        // 为所有select添加事件监听
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const fieldName = e.target.id;
+                toggleCustomInput(fieldName);
+                generatePrompt();
+            });
+        });
+        
+        // 为所有自定义输入框添加事件监听
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            input.addEventListener('input', generatePrompt);
+        });
+        
+        // 初始化
+        generatePrompt();
+    </script>
+</body>
+</html>
